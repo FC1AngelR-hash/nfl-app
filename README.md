@@ -77,7 +77,7 @@ El frontend estará disponible en `http://localhost:5173`
 ## Uso de la Aplicación
 
 1. La aplicación carga automáticamente los juegos de NFL desde ESPN
-2. Haz clic en el botón "Generate AI Predictions" para obtener análisis de Claude
+2. Haz clic en el botón "Generate AI Predictions" para obtener análisis
 3. Cada juego mostrará:
    - Marcador actual
    - Récord de los equipos
@@ -87,6 +87,19 @@ El frontend estará disponible en `http://localhost:5173`
    - Factores clave
    - Probabilidades de victoria
    - Predicción de marcador
+
+### Sistema de Predicción Híbrido
+
+La aplicación utiliza un sistema de predicción inteligente:
+
+- **Claude AI (Anthropic)**: Genera predicciones avanzadas cuando la API key está configurada y tiene fondos
+- **Local Algorithm**: Funciona como fallback automático cuando Claude no está disponible
+  - Análiza récords de equipos
+  - Considera ventaja de campo local
+  - Ajusta por marcador actual si el juego está en progreso
+  - Calcula probabilidades basadas en datos históricos
+
+Esto garantiza que la aplicación siempre funcione, sin importar el estado de la API de Claude.
 
 ## Despliegue en Vercel
 

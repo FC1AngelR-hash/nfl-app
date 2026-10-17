@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { generateLocalPrediction } from '$lib/local-predictions';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
@@ -93,12 +94,33 @@ export async function POST({ request }) {
     console.log(`Generating predictions for ${games.length} games`);
     console.log('Sample game data:', JSON.stringify(games[0]).substring(0, 300));
 
+    // If ANTHROPIC_API_KEY is not set, use local predictions
     if (!ANTHROPIC_API_KEY) {
-      console.error('ANTHROPIC_API_KEY not set');
-      return json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 });
+      console.log('ANTHROPIC_API_KEY not set, using local predictions');
+      const predictions = games.map((game: any) => {
+        const gameData = {
+          homeTeam: game.teams?.[1] || game.homeTeam,
+          awayTeam: game.teams?.[0] || game.awayTeam,
+          homeRecord: game.teams?.[1]?.records?.[0]?.summary || game.teams?.[1]?.record || game.homeRecord || '0-0',
+          awayRecord: game.teams?.[0]?.records?.[0]?.summary || game.teams?.[0]?.record || game.awayRecord || '0-0',
+          homeScore: game.teams?.[1]?.score || game.score?.[1] || game.homeScore || 0,
+          awayScore: game.teams?.[0]?.score || game.score?.[0] || game.awayScore || 0,
+          status: game.status?.type?.state || game.status?.short || game.status || 'Scheduled'
+        };
+
+        const prediction = generateLocalPrediction(gameData);
+        return {
+          gameId: game.id || game.gameId,
+          ...prediction,
+          source: 'local'
+        };
+      });
+
+      console.log('Generated', predictions.length, 'local predictions');
+      return json({ predictions, source: 'local' });
     }
 
-    // Generate predictions for each game
+    // Generate predictions for each game using Claude API
     const predictions = await Promise.all(
       games.map(async (game: any) => {
         try {
@@ -116,18 +138,27 @@ export async function POST({ request }) {
           const prediction = await generatePrediction(gameData);
           return {
             gameId: game.id || game.gameId,
-            ...prediction
+            ...prediction,
+            source: 'claude'
           };
         } catch (error) {
           console.error('Error generating prediction for game:', error);
+          // Fall back to local prediction on error
+          const gameData = {
+            homeTeam: game.teams?.[1] || game.homeTeam,
+            awayTeam: game.teams?.[0] || game.awayTeam,
+            homeRecord: game.teams?.[1]?.records?.[0]?.summary || game.teams?.[1]?.record || game.homeRecord || '0-0',
+            awayRecord: game.teams?.[0]?.records?.[0]?.summary || game.teams?.[0]?.record || game.awayRecord || '0-0',
+            homeScore: game.teams?.[1]?.score || game.score?.[1] || game.homeScore || 0,
+            awayScore: game.teams?.[0]?.score || game.score?.[0] || game.awayScore || 0,
+            status: game.status?.type?.state || game.status?.short || game.status || 'Scheduled'
+          };
+
+          const localPrediction = generateLocalPrediction(gameData);
           return {
             gameId: game.id || game.gameId,
-            prediction: 'Away',
-            confidence: 50,
-            analysis: 'Prediction generation failed',
-            keyFactors: ['Error'],
-            scorePrediction: { home: 24, away: 21 },
-            winProbability: { home: 50, away: 50 },
+            ...localPrediction,
+            source: 'local-fallback',
             error: true
           };
         }
@@ -135,7 +166,7 @@ export async function POST({ request }) {
     );
 
     console.log('Generated', predictions.length, 'predictions');
-    return json({ predictions });
+    return json({ predictions, source: 'claude' });
   } catch (error) {
     console.error('Error in predictions endpoint:', error);
     return json({ error: 'Failed to generate predictions', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });

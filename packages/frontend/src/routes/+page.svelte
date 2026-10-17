@@ -20,6 +20,7 @@
     scorePrediction: { home: number; away: number };
     winProbability: { home: number; away: number };
     error?: boolean;
+    source?: string;
   }
 
   let games: Game[] = $state([]);
@@ -230,9 +231,16 @@
             {#if prediction}
               <div class="mt-4 pt-4 border-t border-white/20">
                 <div class="flex items-center justify-between mb-2">
-                  <span class="text-purple-300 text-sm font-medium">AI Prediction</span>
+                  <span class="text-purple-300 text-sm font-medium">
+                    {prediction.source === 'local' ? 'Local Prediction' : 'AI Prediction (Claude)'}
+                  </span>
                   <span class="text-white text-sm font-bold">{prediction.confidence}% confidence</span>
                 </div>
+                {#if prediction.source === 'local'}
+                  <div class="bg-blue-500/20 rounded px-2 py-1 mb-2">
+                    <p class="text-blue-300 text-xs">Using local algorithm (Claude API unavailable)</p>
+                  </div>
+                {/if}
                 <div class="bg-purple-500/20 rounded-lg p-3 mb-2">
                   <p class="text-white text-sm">{prediction.analysis}</p>
                 </div>
