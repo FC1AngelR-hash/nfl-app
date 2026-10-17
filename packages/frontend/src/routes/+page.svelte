@@ -1,0 +1,97 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+
+  interface Game {
+    id: number;
+    teams: {
+      home: { name: string; logo: string };
+      away: { name: string; logo: string };
+    };
+    score: {
+      home: number;
+      away: number;
+    };
+    status: {
+      long: string;
+    };
+    league: {
+      name: string;
+    };
+  }
+
+  let games: Game[] = [];
+  let loading = true;
+  let error: string | null = null;
+
+  onMount(async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/nfl/games?season=2024&league=1');
+      if (!response.ok) {
+        throw new Error('Failed to fetch games');
+      }
+      const data = await response.json();
+      games = data.response || [];
+    } catch (err) {
+      error = err instanceof Error ? err.message : 'An error occurred';
+    } finally {
+      loading = false;
+    }
+  });
+</script>
+
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+  <div class="container mx-auto px-4 py-8">
+    <header class="text-center mb-12">
+      <h1 class="text-5xl font-bold text-white mb-4">NFL Games</h1>
+      <p class="text-purple-300 text-lg">Live scores and game information</p>
+    </header>
+
+    {#if loading}
+      <div class="flex justify-center items-center h-64">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
+      </div>
+    {:else if error}
+      <div class="bg-red-500/20 border border-red-500 text-red-200 px-6 py-4 rounded-lg max-w-md mx-auto">
+        <p class="font-semibold">Error loading games</p>
+        <p class="text-sm">{error}</p>
+      </div>
+    {:else if games.length === 0}
+      <div class="text-center text-purple-300 py-12">
+        <p class="text-xl">No games available at the moment</p>
+      </div>
+    {:else}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {#each games as game}
+          <div class="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:scale-105">
+            <div class="text-center mb-4">
+              <span class="text-purple-300 text-sm font-medium">{game.league.name}</span>
+            </div>
+
+            <div class="flex items-center justify-between mb-4">
+              <div class="text-center flex-1">
+                {#if game.teams.away.logo}
+                  <img src={game.teams.away.logo} alt={game.teams.away.name} class="w-16 h-16 mx-auto mb-2 object-contain" />
+                {/if}
+                <p class="text-white font-semibold text-sm">{game.teams.away.name}</p>
+              </div>
+
+              <div class="text-center px-4">
+                <div class="text-3xl font-bold text-white mb-1">
+                  {game.score.away} - {game.score.home}
+                </div>
+                <div class="text-xs text-purple-300">{game.status.long}</div>
+              </div>
+
+              <div class="text-center flex-1">
+                {#if game.teams.home.logo}
+                  <img src={game.teams.home.logo} alt={game.teams.home.name} class="w-16 h-16 mx-auto mb-2 object-contain" />
+                {/if}
+                <p class="text-white font-semibold text-sm">{game.teams.home.name}</p>
+              </div>
+            </div>
+          </div>
+        {/each}
+      </div>
+    {/if}
+  </div>
+</div>

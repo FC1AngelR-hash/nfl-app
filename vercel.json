@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm --filter frontend build",
+  "outputDirectory": "packages/frontend/.svelte-kit/output",
+  "installCommand": "pnpm install",
+  "framework": "sveltekit"
+}

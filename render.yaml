@@ -1,0 +1,11 @@
+# Para Render, se recomienda usar Vercel para SvelteKit
+# Si prefieres Render, puedes desplegar solo el frontend:
+services:
+  - type: web
+    name: nfl-app-frontend
+    env: node
+    buildCommand: cd packages/frontend && pnpm install && pnpm build
+    startCommand: cd packages/frontend && pnpm preview
+    envVars:
+      - key: VITE_API_URL
+        value: https://tu-backend-url.onrender.com
