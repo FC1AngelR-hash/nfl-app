@@ -25,7 +25,7 @@
 
   onMount(async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/nfl/games?season=2024&league=1');
+      const response = await fetch('/api/nfl/games?season=2024&league=1');
       if (!response.ok) {
         throw new Error('Failed to fetch games');
       }

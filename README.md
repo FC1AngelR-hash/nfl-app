@@ -1,18 +1,17 @@
 # NFL App - Monorepo
 
-Aplicación web para mostrar información de juegos de NFL usando Node.js, SvelteKit y Tailwind CSS. Los datos se obtienen de RapidAPI.
+Aplicación web para mostrar información de juegos de NFL usando SvelteKit y Tailwind CSS. Los datos se obtienen de RapidAPI a través de API routes de SvelteKit.
 
 ## Estructura del Proyecto
 
 ```
 .
 ├── packages/
-│   ├── frontend/     # SvelteKit + Tailwind CSS
-│   └── backend/      # Node.js + Express
+│   ├── frontend/     # SvelteKit + Tailwind CSS + API Routes
+│   └── backend/      # Node.js + Express (opcional, para referencia)
 ├── pnpm-workspace.yaml
 ├── package.json
-├── vercel.json       # Configuración para Vercel
-└── render.yaml       # Configuración para Render
+└── vercel.json       # Configuración para Vercel
 ```
 
 ## Requisitos Previos
@@ -34,82 +33,84 @@ pnpm install
 
 ## Configuración de Variables de Entorno
 
-### Backend
-El archivo `packages/backend/.env.example` contiene el formato requerido. Para desarrollo local, copia este archivo a `.env` y añade tu API key:
-```bash
-cp packages/backend/.env.example packages/backend/.env
-```
-
-Luego edita `packages/backend/.env` y añade tu API key de RapidAPI:
-```
-RAPIDAPI_KEY=30c925180emsh95a1d1659b75fcep1213d1jsnc739b956f923
-```
-
-**IMPORTANTE**: No commits el archivo `.env` al repositorio. Para producción, configura la variable `RAPIDAPI_KEY` en la plataforma de despliegue (Vercel/Render).
-
 ### Frontend
 Crea el archivo `packages/frontend/.env` (a partir de `.env.example`):
 ```bash
-VITE_API_URL=http://localhost:3001
+cp packages/frontend/.env.example packages/frontend/.env
 ```
 
-Para producción, actualiza `VITE_API_URL` con la URL del backend desplegado.
+Luego edita `packages/frontend/.env` y añade tu API key de RapidAPI:
+```
+VITE_RAPIDAPI_KEY=30c925180emsh95a1d1659b75fcep1213d1jsnc739b956f923
+```
+
+**IMPORTANTE**: No commits el archivo `.env` al repositorio. Para producción, configura la variable de entorno en Vercel.
 
 ## Desarrollo
 
-### Ejecutar ambos servicios (frontend y backend):
-```bash
-pnpm dev
-```
-
-### Ejecutar solo el frontend:
+### Ejecutar el frontend:
 ```bash
 pnpm dev:frontend
 ```
 
-### Ejecutar solo el backend:
+El frontend estará disponible en `http://localhost:5173`
+
+## API Endpoints (SvelteKit Server Functions)
+
+- `GET /api/nfl/games?season=2024&league=1` - Obtener juegos de NFL
+
+## Despliegue en Vercel
+
+### Paso 1: Preparar el Repositorio en GitHub
+
+1. Crea un nuevo repositorio en GitHub
+2. Sube tu código:
+
 ```bash
-pnpm dev:backend
+# Si no has inicializado git:
+git init
+git add .
+git commit -m "Initial commit"
+
+# Agrega el remoto (reemplaza con tu URL):
+git remote add origin https://github.com/tu-usuario/nfl-app.git
+git branch -M main
+git push -u origin main
 ```
 
-El frontend estará disponible en `http://localhost:5173`
-El backend estará disponible en `http://localhost:3001`
+### Paso 2: Desplegar en Vercel
 
-## API Endpoints
+1. Ve a [vercel.com](https://vercel.com) e inicia sesión
+2. Haz clic en "Add New Project"
+3. Importa tu repositorio de GitHub
+4. Configura el proyecto:
+   - **Framework Preset**: SvelteKit
+   - **Root Directory**: `packages/frontend`
+   - **Build Command**: `pnpm install && pnpm build`
+   - **Output Directory**: `.svelte-kit/output`
 
-### Backend (Express)
+5. **Configura las variables de entorno**:
+   - Ve a "Settings" → "Environment Variables"
+   - Añade: `RAPIDAPI_KEY` con el valor: `30c925180emsh95a1d1659b75fcep1213d1jsnc739b956f923`
+   - También puedes añadir `VITE_RAPIDAPI_KEY` con el mismo valor
 
-- `GET /api/health` - Verificar estado del backend
-- `GET /api/nfl/games?season=2024&league=1` - Obtener juegos de NFL
-- `GET /api/nfl/game/:id` - Obtener detalles de un juego específico
-- `GET /api/nfl/teams?league=1` - Obtener equipos de NFL
+6. Haz clic en "Deploy"
 
-## Despliegue
+### Paso 3: Verificar el Despliegue
 
-### Vercel
-
-1. Conecta tu repositorio a Vercel
-2. Configura las variables de entorno en Vercel:
-   - `RAPIDAPI_KEY` (para el backend)
-3. Despliega
-
-### Render
-
-1. Conecta tu repositorio a Render
-2. Render leerá el archivo `render.yaml` automáticamente
-3. Configura las variables de entorno en Render:
-   - `RAPIDAPI_KEY` (para el backend)
-4. Despliega
+- Vercel te proporcionará una URL como `https://nfl-app.vercel.app`
+- Visita la URL para verificar que la aplicación funciona
 
 ## Tecnologías
 
 - **Frontend**: SvelteKit, Tailwind CSS, TypeScript
-- **Backend**: Node.js, Express
 - **Package Manager**: pnpm (workspace)
 - **API**: RapidAPI (API-Football)
+- **Deployment**: Vercel
 
 ## Notas
 
 - El proyecto está configurado como monorepo usando pnpm workspaces
 - Tailwind CSS v4 está configurado en el frontend
-- El backend sirve como proxy para las peticiones a RapidAPI
+- Las llamadas a RapidAPI se hacen a través de API routes de SvelteKit (server functions)
+- No se requiere un backend Express separado para el despliegue en Vercel
