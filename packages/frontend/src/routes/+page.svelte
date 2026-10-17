@@ -23,17 +23,14 @@
   let games: Game[] = [];
   let loading = true;
   let error: string | null = null;
-  let rawResponse: any = null;
 
   onMount(async () => {
     try {
       const response = await fetch('/api/nfl/games?season=2024');
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.details || errorData.error || 'Failed to fetch games');
+        throw new Error('Failed to fetch games');
       }
       const data = await response.json();
-      rawResponse = data;
       console.log('API Response:', data);
 
       // Try to extract games from different possible response structures
@@ -67,25 +64,13 @@
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
       </div>
     {:else if error}
-      <div class="bg-red-500/20 border border-red-500 text-red-200 px-6 py-4 rounded-lg max-w-2xl mx-auto">
-        <p class="font-semibold text-lg mb-2">Error loading games</p>
-        <p class="text-sm mb-4">{error}</p>
-        {#if rawResponse}
-          <details class="mt-4">
-            <summary class="cursor-pointer text-sm underline">View API response</summary>
-            <pre class="mt-2 text-xs bg-black/30 p-4 rounded overflow-auto max-h-64">{JSON.stringify(rawResponse, null, 2)}</pre>
-          </details>
-        {/if}
+      <div class="bg-red-500/20 border border-red-500 text-red-200 px-6 py-4 rounded-lg max-w-md mx-auto">
+        <p class="font-semibold">Error loading games</p>
+        <p class="text-sm">{error}</p>
       </div>
     {:else if games.length === 0}
       <div class="text-center text-purple-300 py-12">
-        <p class="text-xl mb-4">No games available at the moment</p>
-        {#if rawResponse}
-          <details class="mt-4 max-w-2xl mx-auto">
-            <summary class="cursor-pointer text-sm underline">View API response</summary>
-            <pre class="mt-2 text-xs bg-black/30 p-4 rounded overflow-auto max-h-64">{JSON.stringify(rawResponse, null, 2)}</pre>
-          </details>
-        {/if}
+        <p class="text-xl">No games available at the moment</p>
       </div>
     {:else}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
