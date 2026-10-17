@@ -24,10 +24,12 @@
   }
 
   let games: Game[] = $state([]);
+  let allGames: Game[] = $state([]); // Store all games
   let predictions: Map<string, Prediction> = $state(new Map());
   let loading = $state(true);
   let generatingPredictions = $state(false);
   let error: string | null = $state(null);
+  let showAllGames = $state(false); // Toggle to show/hide completed games
 
   onMount(async () => {
     await fetchGames();
@@ -48,18 +50,18 @@
 
       // Extract games from ESPN response
       if (data.events) {
-        games = data.events;
-        console.log('Loaded', games.length, 'games from ESPN');
+        allGames = data.events;
+        console.log('Loaded', allGames.length, 'games from ESPN');
         // Log first game structure for debugging
-        if (games.length > 0) {
-          console.log('First game structure:', JSON.stringify(games[0], null, 2).substring(0, 500));
+        if (allGames.length > 0) {
+          console.log('First game structure:', JSON.stringify(allGames[0], null, 2).substring(0, 500));
         }
       } else if (Array.isArray(data)) {
-        games = data;
-        console.log('Loaded', games.length, 'games as array');
+        allGames = data;
+        console.log('Loaded', allGames.length, 'games as array');
       } else {
         console.error('Unexpected data structure:', data);
-        games = [];
+        allGames = [];
       }
     } catch (err) {
       error = err instanceof Error ? err.message : 'An error occurred';
@@ -72,14 +74,17 @@
   async function generatePredictions() {
     try {
       generatingPredictions = true;
-      console.log('Starting predictions generation for', games.length, 'games');
+
+      // Only generate predictions for upcoming games
+      const upcomingGames = allGames.filter(isGameUpcoming);
+      console.log('Starting predictions generation for', upcomingGames.length, 'upcoming games');
 
       const response = await fetch('/api/predictions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ games })
+        body: JSON.stringify({ games: upcomingGames })
       });
 
       console.log('Prediction API response status:', response.status);
@@ -157,6 +162,18 @@
            game?.status?.state ||
            'Scheduled';
   }
+
+  function isGameCompleted(game: Game): boolean {
+    const status = getGameStatus(game);
+    return status === 'Final' || status === 'Final/OT' || status === 'POST';
+  }
+
+  function isGameUpcoming(game: Game): boolean {
+    return !isGameCompleted(game);
+  }
+
+  // Computed property for filtered games
+  $: games = showAllGames ? allGames : allGames.filter(isGameUpcoming);
 </script>
 
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -166,7 +183,7 @@
       <p class="text-purple-300 text-lg">Live scores powered by ESPN, predictions by Claude</p>
     </header>
 
-    <div class="flex justify-center mb-8">
+    <div class="flex justify-center gap-4 mb-8">
       <button
         onclick={generatePredictions}
         disabled={generatingPredictions || games.length === 0}
@@ -178,6 +195,13 @@
         {:else}
           Generate AI Predictions
         {/if}
+      </button>
+
+      <button
+        onclick={() => showAllGames = !showAllGames}
+        class="bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300"
+      >
+        {showAllGames ? 'Show Upcoming Only' : `Show All (${allGames.length})`}
       </button>
     </div>
 
