@@ -68,12 +68,12 @@ Haz clic en "Configure Project" o continúa con los valores por defecto.
 
    **Variable 1:**
    - **Name**: `RAPIDAPI_KEY`
-   - **Value**: `30c925180emsh95a1d1659b75fcep1213d1jsnc739b956f923`
+   - **Value**: `e2876c35b6msh496273ae1850ec9p1eba0fjsnb431fb347ef4`
    - **Environment**: Selecciona "Production", "Preview" y "Development"
 
    **Variable 2:**
    - **Name**: `VITE_RAPIDAPI_KEY`
-   - **Value**: `30c925180emsh95a1d1659b75fcep1213d1jsnc739b956f923`
+   - **Value**: `e2876c35b6msh496273ae1850ec9p1eba0fjsnb431fb347ef4`
    - **Environment**: Selecciona "Production", "Preview" y "Development"
 
 4. Haz clic en "Add" para cada variable
