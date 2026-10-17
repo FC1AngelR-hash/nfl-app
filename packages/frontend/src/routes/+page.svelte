@@ -23,13 +23,19 @@
     source?: string;
   }
 
-  let games: Game[] = $state([]);
   let allGames: Game[] = $state([]); // Store all games
   let predictions: Map<string, Prediction> = $state(new Map());
   let loading = $state(true);
   let generatingPredictions = $state(false);
   let error: string | null = $state(null);
   let showAllGames = $state(false); // Toggle to show/hide completed games
+
+  // Computed property for filtered games
+  function getFilteredGames(): Game[] {
+    return showAllGames ? allGames : allGames.filter(isGameUpcoming);
+  }
+
+  let games = $derived.by(getFilteredGames);
 
   onMount(async () => {
     await fetchGames();
@@ -171,9 +177,6 @@
   function isGameUpcoming(game: Game): boolean {
     return !isGameCompleted(game);
   }
-
-  // Computed property for filtered games
-  $: games = showAllGames ? allGames : allGames.filter(isGameUpcoming);
 </script>
 
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
