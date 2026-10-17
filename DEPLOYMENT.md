@@ -76,6 +76,11 @@ Haz clic en "Configure Project" o continúa con los valores por defecto.
    - **Value**: `e2876c35b6msh496273ae1850ec9p1eba0fjsnb431fb347ef4`
    - **Environment**: Selecciona "Production", "Preview" y "Development"
 
+   **Variable 3:**
+   - **Name**: `ANTHROPIC_API_KEY`
+   - **Value**: `your_anthropic_api_key_here`
+   - **Environment**: Selecciona "Production", "Preview" y "Development"
+
 4. Haz clic en "Add" para cada variable
 
 ### 3.5 Desplegar
