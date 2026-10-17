@@ -6,6 +6,8 @@ async function fetchFromESPN(endpoint: string, params: Record<string, string> = 
   const url = new URL(`${ESPN_API_BASE}${endpoint}`);
   Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
 
+  console.log('Fetching from ESPN:', url.toString());
+
   const response = await fetch(url.toString());
 
   if (!response.ok) {
@@ -28,6 +30,12 @@ export async function GET({ url }) {
     if (dates) params.dates = dates;
 
     const data = await fetchFromESPN('/scoreboard', params);
+    console.log('ESPN Response structure:', {
+      hasEvents: !!data.events,
+      eventsCount: data.events?.length || 0,
+      sampleEvent: data.events?.[0] ? JSON.stringify(data.events[0]).substring(0, 200) : 'none'
+    });
+
     return json(data);
   } catch (error) {
     console.error('Error fetching ESPN games:', error);

@@ -48,9 +48,16 @@
       // Extract games from ESPN response
       if (data.events) {
         games = data.events;
+        console.log('Loaded', games.length, 'games from ESPN');
+        // Log first game structure for debugging
+        if (games.length > 0) {
+          console.log('First game structure:', JSON.stringify(games[0], null, 2).substring(0, 500));
+        }
       } else if (Array.isArray(data)) {
         games = data;
+        console.log('Loaded', games.length, 'games as array');
       } else {
+        console.error('Unexpected data structure:', data);
         games = [];
       }
     } catch (err) {
@@ -64,6 +71,7 @@
   async function generatePredictions() {
     try {
       generatingPredictions = true;
+      console.log('Starting predictions generation for', games.length, 'games');
 
       const response = await fetch('/api/predictions', {
         method: 'POST',
@@ -73,43 +81,80 @@
         body: JSON.stringify({ games })
       });
 
+      console.log('Prediction API response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to generate predictions');
+        const errorData = await response.json();
+        console.error('Prediction API error:', errorData);
+        throw new Error(errorData.error || errorData.details || 'Failed to generate predictions');
       }
 
       const data = await response.json();
-      console.log('Predictions:', data);
+      console.log('Predictions received:', data);
 
       // Store predictions in a map
-      data.predictions.forEach((pred: Prediction) => {
-        predictions.set(pred.gameId || '', pred);
-      });
+      if (data.predictions && Array.isArray(data.predictions)) {
+        data.predictions.forEach((pred: Prediction) => {
+          predictions.set(pred.gameId || '', pred);
+        });
+        console.log('Stored', predictions.size, 'predictions');
+      } else {
+        console.error('Invalid predictions format:', data);
+        throw new Error('Invalid predictions response format');
+      }
     } catch (err) {
       console.error('Error generating predictions:', err);
-      alert('Failed to generate predictions. Please try again.');
+      alert(`Failed to generate predictions: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       generatingPredictions = false;
     }
   }
 
   function getTeamLogo(team: any): string {
-    return team?.team?.logo || team?.logo || '';
+    // Try multiple possible paths for the logo
+    const logo = team?.team?.logo ||
+                 team?.logo ||
+                 team?.team?.logos?.[0]?.href ||
+                 team?.logos?.[0]?.href ||
+                 '';
+
+    // If no logo from ESPN, try to construct one from team abbreviation
+    if (!logo && team?.team?.abbreviation) {
+      const abbrev = team.team.abbreviation.toLowerCase();
+      return `https://a.espncdn.com/i/teamlogos/nfl/500/${abbrev}.png`;
+    }
+
+    return logo;
   }
 
   function getTeamName(team: any): string {
-    return team?.team?.displayName || team?.displayName || team?.name || 'Unknown';
+    return team?.team?.displayName ||
+           team?.team?.name ||
+           team?.displayName ||
+           team?.name ||
+           team?.abbreviation ||
+           'Unknown';
   }
 
   function getTeamRecord(team: any): string {
-    return team?.records?.[0]?.summary || team?.record || '';
+    return team?.records?.[0]?.summary ||
+           team?.record ||
+           team?.team?.record ||
+           '';
   }
 
   function getScore(team: any): number {
-    return team?.score || team?.scoreValue || 0;
+    return team?.score ||
+           team?.scoreValue ||
+           team?.team?.score ||
+           0;
   }
 
   function getGameStatus(game: Game): string {
-    return game?.status?.type?.short || game?.status?.short || 'Scheduled';
+    return game?.status?.type?.short ||
+           game?.status?.short ||
+           game?.status?.state ||
+           'Scheduled';
   }
 </script>
 

@@ -86,10 +86,17 @@ export async function POST({ request }) {
     const { games } = body;
 
     if (!games || !Array.isArray(games)) {
+      console.error('Invalid request: games array required');
       return json({ error: 'Invalid request: games array required' }, { status: 400 });
     }
 
     console.log(`Generating predictions for ${games.length} games`);
+    console.log('Sample game data:', JSON.stringify(games[0]).substring(0, 300));
+
+    if (!ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY not set');
+      return json({ error: 'ANTHROPIC_API_KEY not configured' }, { status: 500 });
+    }
 
     // Generate predictions for each game
     const predictions = await Promise.all(
@@ -105,6 +112,7 @@ export async function POST({ request }) {
             status: game.status?.type?.state || game.status || 'Scheduled'
           };
 
+          console.log('Game data for prediction:', gameData);
           const prediction = await generatePrediction(gameData);
           return {
             gameId: game.id || game.gameId,
@@ -126,6 +134,7 @@ export async function POST({ request }) {
       })
     );
 
+    console.log('Generated', predictions.length, 'predictions');
     return json({ predictions });
   } catch (error) {
     console.error('Error in predictions endpoint:', error);
