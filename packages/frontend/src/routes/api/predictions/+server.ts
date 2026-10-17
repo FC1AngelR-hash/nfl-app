@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { generateLocalPrediction } from '$lib/local-predictions';
+import { generateLocalPrediction } from '#lib/local-predictions';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 

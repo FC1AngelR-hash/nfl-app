@@ -1,5 +1,5 @@
 {
-	"extends": "$app/tsconfig",
+	"extends": "#app/tsconfig",
 	"compilerOptions": {
 		"strict": true
 	},
