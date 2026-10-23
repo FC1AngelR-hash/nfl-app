@@ -79,6 +79,14 @@
 
       // Only generate predictions for upcoming games
       const upcomingGames = allGames.filter(isGameUpcoming);
+      console.log('Total games:', allGames.length, 'Upcoming games:', upcomingGames.length);
+
+      if (upcomingGames.length === 0) {
+        alert('No upcoming games to predict. Click "Show All" to see all games.');
+        generatingPredictions = false;
+        return;
+      }
+
       console.log('Starting predictions generation for', upcomingGames.length, 'upcoming games');
 
       const response = await fetch('/api/predictions', {
@@ -185,14 +193,14 @@
     <div class="flex justify-center gap-4 mb-8">
       <button
         onclick={generatePredictions}
-        disabled={generatingPredictions || games.length === 0}
+        disabled={generatingPredictions || allGames.length === 0}
         class="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 flex items-center gap-2"
       >
         {#if generatingPredictions}
           <div class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
           Generating...
         {:else}
-          Generate AI Predictions
+          Generate AI Predictions ({allGames.filter(isGameUpcoming).length})
         {/if}
       </button>
 
