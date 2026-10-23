@@ -1,28 +1,29 @@
 import { json } from '@sveltejs/kit';
 import { generateLocalPrediction } from '#lib/local-predictions';
 import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { join } from 'path';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
-// Read the prompt from promptbot.md
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const promptPath = join(__dirname, '../../../../promptbot.md');
-let SYSTEM_PROMPT = '';
-
-try {
-  SYSTEM_PROMPT = readFileSync(promptPath, 'utf-8');
-} catch (error) {
-  console.error('Could not read promptbot.md, using default prompt');
-  SYSTEM_PROMPT = 'You are an expert NFL analyst. Generate predictions based on team records, home field advantage, and current score.';
+// Read the prompt from promptbot.md (will be read at runtime)
+function loadPrompt(): string {
+  try {
+    const promptPath = join(process.cwd(), 'promptbot.md');
+    const content = readFileSync(promptPath, 'utf-8');
+    console.log('Successfully loaded promptbot.md');
+    return content;
+  } catch (error) {
+    console.error('Could not read promptbot.md, using default prompt');
+    return 'You are an expert NFL analyst. Generate predictions based on team records, home field advantage, and current score.';
+  }
 }
 
 async function generatePrediction(gameData: any) {
   const { homeTeam, awayTeam, homeRecord, awayRecord, homeScore, awayScore, status } = gameData;
 
-  const prompt = `${SYSTEM_PROMPT}
+  const systemPrompt = loadPrompt();
+
+  const prompt = `${systemPrompt}
 
 Juego: ${awayTeam.name} @ ${homeTeam.name}
 Récord visitante: ${awayRecord}

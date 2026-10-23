@@ -31,11 +31,7 @@
   let showAllGames = $state(false); // Toggle to show/hide completed games
 
   // Computed property for filtered games
-  function getFilteredGames(): Game[] {
-    return showAllGames ? allGames : allGames.filter(isGameUpcoming);
-  }
-
-  let games = $derived.by(getFilteredGames);
+  const games = $derived(showAllGames ? allGames : allGames.filter(isGameUpcoming));
 
   onMount(async () => {
     await fetchGames();
